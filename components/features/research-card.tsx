@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Download, Eye } from "lucide-react"
 
 import type { ResearchSummary } from "@/types/api"
+import { estimateReadTime } from "@/lib/read-time"
 
 function formatDate(value?: string | null) {
   if (!value) return "n.d."
@@ -59,6 +60,12 @@ export function ResearchCard({ research }: { research: ResearchSummary }) {
           <span className="flex items-center gap-1">
             <Download className="size-3" /> {research.downloadCount ?? 0}
           </span>
+          {(() => {
+            const mins = estimateReadTime(research.abstract)
+            return mins ? (
+              <span className="text-xs text-muted-foreground">{mins} min read</span>
+            ) : null
+          })()}
           {research.rank ? (
             <span className="ml-auto">score {research.rank.toFixed(2)}</span>
           ) : null}

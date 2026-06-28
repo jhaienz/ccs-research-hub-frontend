@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { PublicShell } from "@/components/layout/public-shell"
 import { getResearch, getCategory } from "@/lib/api"
+import { estimateReadTime } from "@/lib/read-time"
 import { ResearchActions } from "@/components/features/research-actions"
 import { CitationGenerator } from "@/components/features/citation-generator"
 import { QrCode } from "@/components/features/qr-code"
@@ -108,6 +109,11 @@ export default async function ResearchDetailPage({ params }: PageProps) {
             <div className="flex items-center gap-2">
               <Quote className="size-4" /> Citations: {research.citationCount ?? 0}
             </div>
+            {estimateReadTime(research.abstract) && (
+              <div className="flex items-center gap-2">
+                ~{estimateReadTime(research.abstract)} min read
+              </div>
+            )}
           </div>
 
           <ResearchActions researchId={research.id} isPrivate={isPrivate} citation={`${authorLine}. (${citationYear}). ${research.title}.`} />
