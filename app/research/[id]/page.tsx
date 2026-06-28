@@ -8,6 +8,7 @@ import { PublicShell } from "@/components/layout/public-shell"
 import { getResearch, getCategory } from "@/lib/api"
 import { ResearchActions } from "@/components/features/research-actions"
 import { CitationGenerator } from "@/components/features/citation-generator"
+import { QrCode } from "@/components/features/qr-code"
 import { ResearchCard } from "@/components/features/research-card"
 
 type PageProps = {
@@ -137,6 +138,13 @@ export default async function ResearchDetailPage({ params }: PageProps) {
           <h2 className="text-xl font-semibold">Citation Generator</h2>
           <div className="mt-4">
             <CitationGenerator authors={authorLine} year={citationYear} title={research.title} />
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-3xl border bg-card p-6 sm:p-8">
+          <h2 className="font-heading text-xl font-semibold tracking-tight">Share</h2>
+          <div className="mt-4">
+            <QrCode researchId={research.id} />
           </div>
         </section>
 
