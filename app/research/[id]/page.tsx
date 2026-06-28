@@ -5,9 +5,10 @@ import { notFound } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { PublicShell } from "@/components/layout/public-shell"
-import { getResearch } from "@/lib/api"
+import { getResearch, getCategory } from "@/lib/api"
 import { ResearchActions } from "@/components/features/research-actions"
 import { CitationGenerator } from "@/components/features/citation-generator"
+import { ResearchCard } from "@/components/features/research-card"
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -31,6 +32,17 @@ function formatDate(value?: string | null) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(value))
 }
 
+async function loadRelated(categoryId: string, excludeId: string) {
+  try {
+    const result = await getCategory(categoryId, 1)
+    return (result.data.researches ?? [])
+      .filter((r) => r.id !== excludeId)
+      .slice(0, 4)
+  } catch {
+    return []
+  }
+}
+
 export default async function ResearchDetailPage({ params }: PageProps) {
   const { id } = await params
   let research
@@ -40,6 +52,11 @@ export default async function ResearchDetailPage({ params }: PageProps) {
   } catch {
     notFound()
   }
+
+  const primaryCategoryId = research.categories?.[0]?.id ?? null
+  const related = primaryCategoryId
+    ? await loadRelated(primaryCategoryId, research.id)
+    : []
 
   const authorLine = research.authors?.map((author) => author.name).join(", ") || "Unknown authors"
   const isPrivate = research.filePrivacy === "private"
@@ -122,6 +139,19 @@ export default async function ResearchDetailPage({ params }: PageProps) {
             <CitationGenerator authors={authorLine} year={citationYear} title={research.title} />
           </div>
         </section>
+
+        {related.length > 0 && (
+          <section className="mt-8 rounded-3xl border bg-card p-6 sm:p-8">
+            <h2 className="font-heading text-xl font-semibold tracking-tight">
+              More from {research.categories![0].name}
+            </h2>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {related.map((item) => (
+                <ResearchCard key={item.id} research={item} />
+              ))}
+            </div>
+          </section>
+        )}
       </article>
     </PublicShell>
   )
