@@ -52,18 +52,13 @@ export function AnalyticsPanel({ admin = false }: { admin?: boolean }) {
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null)
   const [trend, setTrend] = useState<AnalyticsPoint[]>([])
   const [uploadsByRole, setUploadsByRole] = useState<UploadsByRole[]>([])
+  const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">("weekly")
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const prefix = admin ? "/analytics/admin" : "/analytics/user"
-    Promise.all([
-      clientEnvelope<AnalyticsOverview>(`${prefix}/overview`),
-      clientEnvelope<AnalyticsPoint[]>(`${prefix}/trends?period=weekly&metric=views`),
-    ])
-      .then(([nextOverview, nextTrend]) => {
-        setOverview(nextOverview)
-        setTrend(nextTrend)
-      })
+    clientEnvelope<AnalyticsOverview>(`${prefix}/overview`)
+      .then(setOverview)
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Unable to load analytics"))
 
     if (admin) {
@@ -73,14 +68,45 @@ export function AnalyticsPanel({ admin = false }: { admin?: boolean }) {
     }
   }, [admin])
 
+  useEffect(() => {
+    const prefix = admin ? "/analytics/admin" : "/analytics/user"
+    clientEnvelope<AnalyticsPoint[]>(`${prefix}/trends?period=${period}&metric=views`)
+      .then(setTrend)
+      .catch(() => {})
+  }, [admin, period])
+
+  const periodLabels: Record<string, string> = {
+    daily: "Daily",
+    weekly: "Weekly",
+    monthly: "Monthly",
+  }
+
   return (
     <section className="rounded-3xl border bg-card p-8">
       <h1 className="text-3xl font-semibold tracking-tight">{admin ? "Admin Dashboard" : "User Dashboard"}</h1>
       <p className="mt-3 text-muted-foreground">Live analytics from the backend.</p>
       <div className="mt-8"><AuthNotice error={error} /></div>
       <div className="mt-6"><StatGrid overview={overview} /></div>
+
       <div className="mt-8 rounded-xl border bg-background p-5">
-        <h2 className="font-semibold">Weekly views</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="font-semibold">Views</h2>
+          <div className="flex gap-1 rounded-lg border bg-muted/30 p-0.5">
+            {(["daily", "weekly", "monthly"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                  period === p
+                    ? "bg-card shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {periodLabels[p]}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="mt-4 grid gap-2">
           {trend.map((point) => (
             <div key={point.date} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm">
@@ -91,6 +117,7 @@ export function AnalyticsPanel({ admin = false }: { admin?: boolean }) {
           {!trend.length && <p className="text-sm text-muted-foreground">No trend data yet.</p>}
         </div>
       </div>
+
       {admin && uploadsByRole.length > 0 && (
         <div className="mt-6 rounded-xl border bg-background p-5">
           <h2 className="font-semibold">Uploads by role</h2>
