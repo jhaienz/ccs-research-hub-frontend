@@ -94,7 +94,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
               <select name="keyword" defaultValue={params.keyword ?? ""} className="h-10 rounded-lg border bg-background px-3">
                 <option value="">All keywords</option>
                 {keywords.map((kw) => (
-                  <option key={kw.id} value={kw.name}>
+                  <option key={kw.id} value={kw.id}>
                     {kw.name}
                   </option>
                 ))}

@@ -204,8 +204,12 @@ export function MyPapersPanel() {
                         onClick={() => {
                           if (!window.confirm("Resubmit this paper for review?")) return
                           startTransition(async () => {
-                            await clientAction(`/research/${paper.id}/resubmit`, "PATCH")
-                            load()
+                            try {
+                              await clientAction(`/research/${paper.id}/resubmit`, "PATCH")
+                              load()
+                            } catch (err) {
+                              setError(err instanceof Error ? err.message : "Resubmit failed")
+                            }
                           })
                         }}
                       >
@@ -644,10 +648,12 @@ export function AdminResearchPanel({ statusFilter = "" }: { statusFilter?: strin
     if (!selected.size) return
     if (!window.confirm(`Approve ${selected.size} paper(s)?`)) return
     startTransition(async () => {
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         [...selected].map((id) => clientAction(`/research/${id}/approve`, "PATCH"))
       )
+      const failed = results.filter((r) => r.status === "rejected").length
       setSelected(new Set())
+      if (failed > 0) setError(`${failed} approval(s) failed — please try again.`)
       load(activeStatus)
     })
   }
