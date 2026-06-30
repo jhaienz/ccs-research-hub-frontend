@@ -31,7 +31,15 @@ async function proxy(request: NextRequest, context: { params: Promise<unknown> }
   if (backendResponse.status === 401 && token) {
     const refreshed = await refreshAccessToken(cookieCarrier)
     if (!refreshed) {
-      return NextResponse.json({ statusCode: 401, message: "Session expired. Sign in again." }, { status: 401 })
+      // refreshAccessToken wrote cookie-deletion headers onto cookieCarrier.
+      // Without propagating them here, the browser keeps the old cookies and
+      // proxy.ts bounces the user back to /admin, creating an infinite loop.
+      const expiredResponse = NextResponse.json(
+        { statusCode: 401, message: "Session expired. Sign in again." },
+        { status: 401 },
+      )
+      cookieCarrier.cookies.getAll().forEach((cookie) => expiredResponse.cookies.set(cookie))
+      return expiredResponse
     }
     backendResponse = await makeBackendRequest(refreshed)
   }
