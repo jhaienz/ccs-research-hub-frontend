@@ -53,6 +53,14 @@ export function EditResearchForm({ id }: { id: string }) {
     return <p className="text-sm text-muted-foreground">Loading…</p>
   }
 
+  if (research.status === "approved") {
+    return (
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+        Approved papers cannot be edited. Contact an admin if changes are needed.
+      </div>
+    )
+  }
+
   const publishDateValue = research.publishDate
     ? new Date(research.publishDate).toISOString().split("T")[0]
     : ""

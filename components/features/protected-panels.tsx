@@ -650,8 +650,8 @@ export function AdminResearchPanel({ statusFilter = "" }: { statusFilter?: strin
   const [isAiPending, startAiTransition] = useTransition()
 
   function load(status: string) {
-    const query = status ? `?status=${status}&limit=50` : "?limit=50"
-    clientPaginated<ResearchSummary>(`/research/admin/all${query}`, 1, 50)
+    const path = status ? `/research/admin/all?status=${status}` : "/research/admin/all"
+    clientPaginated<ResearchSummary>(path, 1, 50)
       .then((response) => {
         setPapers(response.data)
         setTotal(response.meta.total)
