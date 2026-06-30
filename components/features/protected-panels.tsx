@@ -166,8 +166,12 @@ export function MyPapersPanel() {
   function remove(id: string) {
     if (!window.confirm("Delete this paper? This cannot be undone.")) return
     startTransition(async () => {
-      await clientAction(`/research/${id}`, "DELETE")
-      load()
+      try {
+        await clientAction(`/research/${id}`, "DELETE")
+        load()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Delete failed")
+      }
     })
   }
 
@@ -267,8 +271,12 @@ export function CollectionsPanel() {
 
   function remove(researchId: string) {
     startTransition(async () => {
-      await clientAction(`/collections/${researchId}`, "DELETE")
-      load()
+      try {
+        await clientAction(`/collections/${researchId}`, "DELETE")
+        load()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Remove failed")
+      }
     })
   }
 
@@ -339,8 +347,12 @@ export function PdfRequestsPanel() {
 
   function decide(id: string, action: "approve" | "reject") {
     startTransition(async () => {
-      await clientAction(`/pdf-requests/${id}/${action}`, "POST")
-      load()
+      try {
+        await clientAction(`/pdf-requests/${id}/${action}`, "POST")
+        load()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : `${action === "approve" ? "Approve" : "Reject"} failed`)
+      }
     })
   }
 
@@ -391,14 +403,18 @@ export function SettingsPanel() {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
     startTransition(async () => {
-      const updated = await clientAction<UserProfile>("/users/me", "PATCH", {
-        firstName: form.get("firstName"),
-        middleName: form.get("middleName") || null,
-        lastName: form.get("lastName"),
-        suffix: form.get("suffix") || null,
-      })
-      setProfile(updated)
-      setProfileMessage("Profile updated")
+      try {
+        const updated = await clientAction<UserProfile>("/users/me", "PATCH", {
+          firstName: form.get("firstName"),
+          middleName: form.get("middleName") || null,
+          lastName: form.get("lastName"),
+          suffix: form.get("suffix") || null,
+        })
+        setProfile(updated)
+        setProfileMessage("Profile updated")
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Update failed")
+      }
     })
   }
 
@@ -414,7 +430,7 @@ export function SettingsPanel() {
 
     startPicTransition(async () => {
       try {
-        const { uploadUrl } = await clientAction<{ uploadUrl: string; key: string }>("/users/me/profile-picture", "POST")
+        const { uploadUrl } = await clientAction<{ uploadUrl: string; key: string }>("/users/me/profile-picture", "POST", { contentType: file.type })
         const r2 = await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } })
         if (!r2.ok) throw new Error("Upload to storage failed")
         setPicMessage("Profile picture updated.")
@@ -538,8 +554,12 @@ export function AdminUsersPanel() {
   function remove(id: string) {
     if (!window.confirm("Delete this user? This cannot be undone.")) return
     startTransition(async () => {
-      await clientAction(`/users/${id}`, "DELETE")
-      load()
+      try {
+        await clientAction(`/users/${id}`, "DELETE")
+        load()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Delete failed")
+      }
     })
   }
 
@@ -547,12 +567,16 @@ export function AdminUsersPanel() {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
     startTransition(async () => {
-      await clientAction(`/users/${id}`, "PATCH", {
-        role: form.get("role"),
-        status: form.get("status"),
-      })
-      setEditingId(null)
-      load()
+      try {
+        await clientAction(`/users/${id}`, "PATCH", {
+          role: form.get("role"),
+          status: form.get("status"),
+        })
+        setEditingId(null)
+        load()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Update failed")
+      }
     })
   }
 
@@ -878,7 +902,15 @@ export function TaxonomyManager({ title, endpoint }: { title: string; endpoint: 
   function create(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const name = new FormData(event.currentTarget).get("name")
-    startTransition(async () => { await clientAction(endpoint, "POST", { name }); (event.target as HTMLFormElement).reset(); load() })
+    startTransition(async () => {
+      try {
+        await clientAction(endpoint, "POST", { name })
+        ;(event.target as HTMLFormElement).reset()
+        load()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Create failed")
+      }
+    })
   }
 
   function startEdit(item: Category | Keyword) {
@@ -888,14 +920,25 @@ export function TaxonomyManager({ title, endpoint }: { title: string; endpoint: 
 
   function saveEdit(id: string) {
     startTransition(async () => {
-      await clientAction(`${endpoint}/${id}`, "PATCH", { name: editName })
-      setEditingId(null)
-      load()
+      try {
+        await clientAction(`${endpoint}/${id}`, "PATCH", { name: editName })
+        setEditingId(null)
+        load()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Update failed")
+      }
     })
   }
 
   function remove(id: string) {
-    startTransition(async () => { await clientAction(`${endpoint}/${id}`, "DELETE"); load() })
+    startTransition(async () => {
+      try {
+        await clientAction(`${endpoint}/${id}`, "DELETE")
+        load()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Delete failed")
+      }
+    })
   }
 
   return (
