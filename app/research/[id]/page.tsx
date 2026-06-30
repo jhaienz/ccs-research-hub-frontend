@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowLeft, Download, Eye, FileText, Quote } from "lucide-react"
+import { ArrowLeft, Eye, FileDown, Quote } from "lucide-react"
 import { notFound } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -104,7 +104,7 @@ export default async function ResearchDetailPage({ params }: PageProps) {
               <Eye className="size-4" /> Views: {research.viewCount ?? 0}
             </div>
             <div className="flex items-center gap-2">
-              <Download className="size-4" /> Downloads: {research.downloadCount ?? 0}
+              <FileDown className="size-4" /> Downloads: {research.downloadCount ?? 0}
             </div>
             <div className="flex items-center gap-2">
               <Quote className="size-4" /> Citations: {research.citationCount ?? 0}
@@ -125,22 +125,6 @@ export default async function ResearchDetailPage({ params }: PageProps) {
         <section className="mt-8 rounded-3xl border bg-card p-6 sm:p-8">
           <h2 className="text-xl font-semibold">Abstract</h2>
           <p className="mt-4 leading-8 text-muted-foreground">{research.abstract ?? "No abstract provided."}</p>
-        </section>
-
-        <section className="mt-8 rounded-3xl border bg-card p-6 sm:p-8">
-          <h2 className="text-xl font-semibold">PDF Viewer</h2>
-          {isPrivate ? (
-            <div className="mt-4 rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
-              This PDF is private. Submit a PDF request to contact the owner.
-            </div>
-          ) : (
-            <div className="mt-4 flex min-h-72 items-center justify-center rounded-2xl border border-dashed bg-muted/30 text-muted-foreground">
-              <div className="text-center">
-                <FileText className="mx-auto mb-3 size-8" />
-                Use Download PDF above to request a presigned viewer URL.
-              </div>
-            </div>
-          )}
         </section>
 
         <section className="mt-8 rounded-3xl border bg-card p-6 sm:p-8">
